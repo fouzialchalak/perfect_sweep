@@ -7,37 +7,16 @@ Created on Sun Nov 12 22:07:03 2017
 
 import numpy as np
 import matplotlib.pyplot as plt
-import sounddevice as sf
- 
 
-
-def perfectsweep(fs, N):
-
-    # intialization
-    isEven = (N % 2 == 0)
-    Nhalf = int(np.ceil((N+1) / 2))
-    ph = np.zeros(N)
-
-#    groupDelay = np.arange(Nhalf) / N / (fs / 2)
-
-#    deltaOmega = 2 * np.pi * fs / N
-#    a = np.arange(1, Nhalf)
-#    ph[:Nhalf] = -groupDelay * (deltaOmega * np.arange(Nhalf)) / 2
-    ph[:Nhalf] = -2 * np.pi / N * np.arange(Nhalf)**2
-#    a =  np.multiply((deltaOmega * np.arange(len(groupDelay)-1)), - groupDelay)
-    # ph(arange(1,Nhalf)) = np.divide(a,2)
-
-    if isEven:
-        ph[Nhalf:] = -np.flipud(ph[1:Nhalf-1])
-    else:
-        ph[Nhalf:] = -np.flipud(ph[1:Nhalf])
-
-    c = np.exp(1j * ph)
-    s = np.real(np.fft.ifft(c))
-    return s / np.max(abs(s))
-
-N = 32
-p = perfectsweep(44100, 32)
-acf = np.fft.irfft(np.fft.rfft(p)*np.fft.rfft(np.roll(p[::-1], 1)), n=N)
-plt.plot(acf)
-#sf.play(p)
+def perfect_sweep(N):
+    
+#   obtain the full length of the signal:
+#   (m = M/2) where M=N is the length of one period of the sequence
+   Nhalf = int(np.ceil(N/2))
+   m = np.arange(Nhalf+1)
+#   after computing half of the spectrum, we get the other half by flipping the
+#   order & apply complex conjugate, then transform it back to the time domain.
+#   the argument of the exponential term increases quadratically 
+#   in the freq. domain due to the (m^2)
+   ph = np.exp(-1j * 2* np.pi * m**2 / N)
+   return np.fft.irfft(ph)
